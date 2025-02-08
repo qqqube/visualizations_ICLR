@@ -147,7 +147,7 @@ def _make_discussions(client, venue_id, save_dir):
                           "writer": "Authors" if by_author else "Reviewer",
 
                           # ------ content ---------
-                          "title": reply["content"]["title"]["value"] if by_author else "", # str
+                          "title": reply["content"]["title"]["value"] if "title" in reply["content"].keys() else "", # str
                           "comment": reply["content"]["comment"]["value"], # str
                           }
                 comment_records.append(record)
