@@ -170,7 +170,7 @@ if __name__ == "__main__":
     client = init_api_v2(USERNAME, PASSWORD)
 
     # ------ create submissions.csv -------
-    #_make_submissions(client, args.venue_id, os.path.join(args.save_dir, "submissions.csv"))
+    _make_submissions(client, args.venue_id, os.path.join(args.save_dir, "submissions.csv"))
 
     # ------ create official_reviews.csv and official_comments.csv ------
     _make_discussions(client, args.venue_id, args.save_dir)
