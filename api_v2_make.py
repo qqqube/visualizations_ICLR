@@ -7,7 +7,7 @@ import os
 import pandas as pd
 
 
-def init_api_v2(venue_id, USERNAME, PASSWORD):
+def init_api_v2(USERNAME, PASSWORD):
     """
     Return client for API V2
     """
@@ -91,8 +91,47 @@ def _make_submissions(client, venue_id, save_path):
     df.to_csv(save_path, index=False)
 
 
-def _make_discussions(client, venue_id, save_path):
-    """ Create discussions table """
+def _make_discussions(client, venue_id, save_dir):
+    """ Create official reviews and official comments tables """
+
+    print(f"enter api_v2_make._make_discussion save_path {save_dir}")
+    venue_group = client.get_group(venue_id)
+
+    # ----- get all submissions & replies to submissions -----------
+    submission_name = venue_group.content['submission_name']['value']
+    submissions = client.get_all_notes(invitation=f'{venue_id}/-/{submission_name}', details='replies')
+
+    # --- make official review table ---------
+    review_name = venue_group.content['review_name']['value'] # official review name
+    review_records = []
+    for submission in submissions:
+        for reply in submission.details["replies"]:
+            # reply is an official review
+            if f'{venue_id}/{submission_name}{submission.number}/-/{review_name}' in reply['invitations']:
+                record = {"id": reply["id"], # str
+                          "replyto": reply["replyto"], # str containing id of submission
+                          "tcdate" : reply["tcdate"], # unix timestamp in milliseconds for true creation date
+                          "tmdate": reply["tmdate"], # unix timestamp in milliseconds for true modification date
+                          
+                          # ---- content ------
+                          "summary": reply["content"]["summary"]["value"], # str
+                          "soundness": reply["content"]["soundness"]["value"], # int
+                          "presentation": reply["content"]["presentation"]["value"], #int
+                          "contribution": reply["content"]["contribution"]["value"], #int
+                          "strengths": reply["content"]["strengths"]["value"], # str
+                          "weaknesses": reply["content"]["weaknesses"]["value"], # str
+                          "questions": reply["content"]["questions"]["value"], # str
+                          "rating": reply["content"]["rating"]["value"], # int 
+                          "confidence": reply["content"]["confidence"] #int
+                          }
+                review_records.append(record)
+    df = pd.DataFrame.from_records(review_records)
+    print(f"found {df.shape[0]} reviews")
+    df.to_csv(os.path.join(save_dir, "official_reviews.csv"), escapechar="\\", index=False)
+    print("created official_reviews.csv")
+
+    # ---- make official comments table --------
+    
 
 
 if __name__ == "__main__":
@@ -105,10 +144,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     USERNAME, PASSWORD = _get_credentials(args.credentials_path)
-    client = init_api_v2(args.venue_id, USERNAME, PASSWORD)
+    client = init_api_v2(USERNAME, PASSWORD)
 
     # ------ create submissions.csv -------
-    _make_submissions(client, args.venue_id, os.path.join(args.save_dir, "submissions.csv"))
+    #_make_submissions(client, args.venue_id, os.path.join(args.save_dir, "submissions.csv"))
 
-    # ------ create discussions.csv ------
-    _make_discussions(client, args.venue_id, os.path.join(args.save_dir, "discussions.csv"))
+    # ------ create official_reviews.csv and official_comments.csv ------
+    _make_discussions(client, args.venue_id, args.save_dir)
