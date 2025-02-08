@@ -130,8 +130,31 @@ def _make_discussions(client, venue_id, save_dir):
     df.to_csv(os.path.join(save_dir, "official_reviews.csv"), escapechar="\\", index=False)
     print("created official_reviews.csv")
 
-    # ---- make official comments table --------
-    
+    # ---- make official comments table (author & reviewer responses to official reviews) --------
+    comment_records = []
+    for submission in submissions:
+        for reply in submission.details["replies"]:
+            # reply is an official comment
+            if reply['invitations'][0].endswith('Official_Comment'):
+                
+                # response by author
+                by_author = any('Authors' in mem for mem in reply['signatures'])
+
+                record = {"id": reply["id"],
+                          "replyto": reply["replyto"],
+                          "tcdate": reply["tcdate"], # unix timestamp in milliseconds for true creation date
+                          "tmdate": reply["tmdate"], # unix timestamp in milliseconds for true modification date
+                          "writer": "Authors" if by_author else "Reviewer",
+
+                          # ------ content ---------
+                          "title": reply["content"]["title"]["value"] if by_author else "", # str
+                          "comment": reply["content"]["comment"]["value"], # str
+                          }
+                comment_records.append(record)
+    df = pd.DataFrame.from_records(comment_records)
+    print(f"found {df.shape[0]} official comments")
+    df.to_csv(os.path.join(save_dir, "official_comments.csv"), escapechar="\\", index=False)
+    print("created official_comments.csv")
 
 
 if __name__ == "__main__":
