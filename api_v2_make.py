@@ -37,11 +37,8 @@ def _make_submissions(client, venue_id, save_path):
         assert len(submission.content["keywords"].keys()) == 1
         assert len(submission.content["abstract"].keys()) == 1
         assert len(submission.content["primary_area"].keys()) == 1
-        if "pdf" not in submission.content.keys():
-            # this means that authors withdrew before the deadline
-            # so paper is no longer hosted on openreview
-            continue
-        assert len(submission.content["pdf"].keys()) == 1
+        if "pdf" in submission.content.keys():
+            assert len(submission.content["pdf"].keys()) == 1
 
         record = {"id": submission.id, "number": submission.number,
                   "mdate": submission.mdate, "tmdate": submission.tmdate, # modification unix timestamps in milliseconds
@@ -51,7 +48,7 @@ def _make_submissions(client, venue_id, save_path):
                   "keywords": submission.content["keywords"]["value"], # list of strings
                   "abstract": submission.content["abstract"]["value"], # string
                   "primary_area": submission.content["primary_area"]["value"], # string
-                  "pdf": submission.content["pdf"]["value"] # string (path to pdf file)
+                  "pdf": submission.content["pdf"]["value"] if "pdf" in submission.content.keys() else "" # string (path to pdf file, could be empty string for authors who withdrew before the deadline)
                   }
         
         records.append(record)
@@ -94,6 +91,10 @@ def _make_submissions(client, venue_id, save_path):
     df.to_csv(save_path, index=False)
 
 
+def _make_discussions(client, venue_id, save_path):
+    """ Create discussions table """
+
+
 if __name__ == "__main__":
 
     # load arguments
@@ -111,4 +112,3 @@ if __name__ == "__main__":
 
     # ------ create discussions.csv ------
     _make_discussions(client, args.venue_id, os.path.join(args.save_dir, "discussions.csv"))
-    
