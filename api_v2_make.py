@@ -137,8 +137,11 @@ def _make_discussions(client, venue_id, save_dir):
             # reply is an official comment
             if reply['invitations'][0].endswith('Official_Comment'):
                 
-                # response by author
+                # response by who
                 by_author = any('Authors' in mem for mem in reply['signatures'])
+                by_reviewer = any("Reviewer_" in mem for mem in reply["signatures"])
+                if not any([by_author, by_reviewer]):
+                    continue
 
                 record = {"id": reply["id"],
                           "replyto": reply["replyto"],
@@ -170,7 +173,7 @@ if __name__ == "__main__":
     client = init_api_v2(USERNAME, PASSWORD)
 
     # ------ create submissions.csv -------
-    _make_submissions(client, args.venue_id, os.path.join(args.save_dir, "submissions.csv"))
+    #_make_submissions(client, args.venue_id, os.path.join(args.save_dir, "submissions.csv"))
 
     # ------ create official_reviews.csv and official_comments.csv ------
     _make_discussions(client, args.venue_id, args.save_dir)
