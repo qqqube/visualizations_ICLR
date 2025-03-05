@@ -58,6 +58,16 @@ def _outcome_2019(note, client):
                }
     return mapping[decision_notes[0].content["recommendation"]]
 
+def _outcome_2017(note, client):
+    invitation = f"ICLR.cc/2017/conference/-/paper{note.number}/acceptance"
+    decision_notes = [item for item in openreview.tools.iterget_notes(client, invitation=invitation)]
+    assert len(decision_notes) == 1
+    mapping = {"ICLR 2017 Poster": ACCEPTED,
+               "ICLR 2017 Oral": ACCEPTED,
+                "Submitted to ICLR 2017": REJECTED, 
+                "ICLR 2017 Invite to Workshop": REJECTED}
+    return mapping[decision_notes[0].content['decision']]
+
 DECISION_MAPPING = {2023: lambda note, _ : {'ICLR 2023 notable top 25%': ACCEPTED,
                                             'ICLR 2023 notable top 5%': ACCEPTED,
                                             'ICLR 2023 poster': ACCEPTED,
@@ -69,7 +79,12 @@ DECISION_MAPPING = {2023: lambda note, _ : {'ICLR 2023 notable top 25%': ACCEPTE
                     2021: lambda note, _ : REJECTED if "venue" not in note.content.keys() else ACCEPTED,
                     2020: _outcome_2020,
                     2019: _outcome_2019,
-                    2018: lambda note, client : ""}
+                    2018: lambda note, client : "",
+                    2017: lambda note, _ : {"ICLR 2017 Poster": ACCEPTED,
+                                            "ICLR 2017 Oral": ACCEPTED,
+                                            "Submitted to ICLR 2017": REJECTED, 
+                                            "ICLR 2017 Invite to Workshop": REJECTED}[note.content["venue"]],
+                    }
 
 
 def init_api_v1(USERNAME, PASSWORD):
