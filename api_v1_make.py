@@ -68,7 +68,8 @@ DECISION_MAPPING = {2023: lambda note, _ : {'ICLR 2023 notable top 25%': ACCEPTE
                                             'ICLR 2022 Submitted': REJECTED}[note.content["venue"]],
                     2021: lambda note, _ : REJECTED if "venue" not in note.content.keys() else ACCEPTED,
                     2020: _outcome_2020,
-                    2019: _outcome_2019}
+                    2019: _outcome_2019,
+                    2018: lambda _, _ : ""}
 
 
 def init_api_v1(USERNAME, PASSWORD):
@@ -88,6 +89,14 @@ def _make_submissions(client, venue_year, save_path):
     # ------ get all blind submissions -----
     blind_submissions = [note for note in openreview.tools.iterget_notes(client, 
                                                                          invitation=BLIND_SUBMISION[venue_year])]
+    if venue_year == 2018:
+        mapping = {'Accept (Oral)': ACCEPTED,
+                   'Accept (Poster)': ACCEPTED,
+                   'Invite to Workshop Track': REJECTED,
+                   'Reject': REJECTED}
+        decision_notes = [note for note in openreview.tools.iterget_notes(client, invitation="ICLR.cc/2018/Conference/-/Acceptance_Decision")]
+        decision_notes = {note.repyto: mapping[note.content["decision"]] for note in decision_notes}
+    
     for submission in tqdm(blind_submissions):
         record = {"id": submission.id, "number": submission.number,
                   "mdate": submission.mdate, "tmdate": submission.tmdate, # modification unix timestamps in milliseconds
@@ -99,7 +108,11 @@ def _make_submissions(client, venue_year, save_path):
                   "pdf": submission.content["pdf"], # string
                   "outcome": DECISION_MAPPING[venue_year](submission, client), # string
                   }
+        if venue_year == 2018:
+            record["outcome"] = decision_notes[submission.id]
+        
         records.append(record)
+    
     # -------- get all withdrawn submissions -----
     withdrawn_submissions = [note for note in openreview.tools.iterget_notes(client,
                                                                              invitation=WITHDRAWN_SUBMISSION[venue_year])]
