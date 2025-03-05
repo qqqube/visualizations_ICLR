@@ -117,7 +117,7 @@ def _make_submissions(client, venue_year, save_path):
                   "mdate": submission.mdate, "tmdate": submission.tmdate, # modification unix timestamps in milliseconds
                   "title": submission.content["title"], # string
                   "authors": submission.content["authors"], # list of strings
-                  "authorids": submission.content["authorids"], # list of strings
+                  "authorids": submission.content["authorids"] if "authorids" in submission.content.keys() else submission.content["author_emails"], # list of strings or just string
                   "keywords": submission.content["keywords"], # list of strings
                   "abstract": submission.content["abstract"], # string
                   "pdf": submission.content["pdf"], # string
