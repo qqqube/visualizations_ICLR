@@ -95,7 +95,7 @@ def _make_submissions(client, venue_year, save_path):
                    'Invite to Workshop Track': REJECTED,
                    'Reject': REJECTED}
         decision_notes = [note for note in openreview.tools.iterget_notes(client, invitation="ICLR.cc/2018/Conference/-/Acceptance_Decision")]
-        decision_notes = {note.repyto: mapping[note.content["decision"]] for note in decision_notes}
+        decision_notes = {note.replyto: mapping[note.content["decision"]] for note in decision_notes}
     
     for submission in tqdm(blind_submissions):
         record = {"id": submission.id, "number": submission.number,
