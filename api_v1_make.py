@@ -109,7 +109,13 @@ def _make_submissions(client, venue_year, save_path):
                   "outcome": DECISION_MAPPING[venue_year](submission, client), # string
                   }
         if venue_year == 2018:
-            record["outcome"] = decision_notes[submission.id]
+            if submission.id not in decision_notes.keys():
+                if "withdrawal" in submission.content.keys() and submission.content["withdrawal"] == "Confirmed":
+                    record["outcome"] = "Withdrawn"
+                else:
+                    continue
+            else:
+                record["outcome"] = decision_notes[submission.id]
         
         records.append(record)
     
