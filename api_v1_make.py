@@ -69,7 +69,7 @@ DECISION_MAPPING = {2023: lambda note, _ : {'ICLR 2023 notable top 25%': ACCEPTE
                     2021: lambda note, _ : REJECTED if "venue" not in note.content.keys() else ACCEPTED,
                     2020: _outcome_2020,
                     2019: _outcome_2019,
-                    2018: lambda _, _ : ""}
+                    2018: lambda note, client : ""}
 
 
 def init_api_v1(USERNAME, PASSWORD):
