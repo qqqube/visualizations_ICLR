@@ -179,14 +179,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--credentials_path", type=str, default="../credentials.ini") # path to config that contains username and password
     parser.add_argument("--venue_year", type=int)
-    parser.add_argument("--save_dir", type=str) # path to directory to save csv files in
     args = parser.parse_args()
 
     USERNAME, PASSWORD = _get_credentials(args.credentials_path)
     client = init_api_v1(USERNAME, PASSWORD)
 
     # ------ create submissions.csv -------
-    _make_submissions(client, args.venue_year, os.path.join(args.save_dir, "submissions.csv"))
+    _make_submissions(client, args.venue_year, os.path.join(str(args.venue_year), "submissions.csv"))
 
     # ------ create official_reviews.csv and official_comments.csv ------
-    #_make_discussions(client, args.venue_id, args.save_dir)
+    #_make_discussions(client, args.venue_id, ???)
