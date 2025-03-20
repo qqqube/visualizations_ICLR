@@ -33,9 +33,12 @@ DESK_REJECTED_SUBMISSION = {2017: "ICLR.cc/2017/Conference/-/Desk_Rejected_Submi
                             2023: "ICLR.cc/2023/Conference/-/Desk_Rejected_Submission"}
 
 OFFICIAL_REVIEWS = {2017: "ICLR.cc/2017/conference/-/paper%s/official/review", 
-                    2018: "ICLR.cc/2018/Conference/-/Paper.*/Official_Review", 
-                    2019: "ICLR.cc/2019/Conference/-/Paper.*/Official_Review", 
-                    2020: "ICLR.cc/2020/Conference/Paper.*/-/Official_Review"}
+                    2018: "ICLR.cc/2018/Conference/-/Paper%s/Official_Review", 
+                    2019: "ICLR.cc/2019/Conference/-/Paper%s/Official_Review", 
+                    2020: "ICLR.cc/2020/Conference/Paper%s/-/Official_Review",
+                    2021: "ICLR.cc/2021/Conference/Paper%s/-/Official_Review",
+                    2022: "ICLR.cc/2022/Conference/Paper%s/-/Official_Review",
+                    2023: "ICLR.cc/2023/Conference/Paper%s/-/Official_Review"}
 
 ACCEPTED = "Accepted"
 REJECTED = "Rejected"
@@ -191,25 +194,77 @@ def _make_discussions(client, venue_year):
         reviews = openreview.tools.iterget_notes(client,
                                                  invitation=invitation)
         for review in reviews:
-            #print(f"review.id = {review.id}")
-            #print(f"review.replyto = {review.replyto}")
-            record = {"id": review.id, #str
-                      "replyto": review.replyto, # id of submission (str)
-                      "tcdate": review.tcdate,
-                      "tmdate": review.tmdate,
-                      
-                      # ------ content -------
-                      "title": review.content["title"],
-                      "rating": review.content["rating"],
-                      "review": review.content["review"],
-                      "confidence": review.content["confidence"] if "confidence" in review.content.keys() else "",
-                      }
+            if venue_year in [2017, 2018, 2019, 2021]:
+                record = {"id": review.id, #str
+                        "replyto": review.replyto, # id of submission (str)
+                        "tcdate": review.tcdate,
+                        "tmdate": review.tmdate,
+                        
+                        # ------ content -------
+                        "title": review.content["title"],
+                        "rating": review.content["rating"],
+                        "review": review.content["review"],
+                        "confidence": review.content["confidence"] if "confidence" in review.content.keys() else "",
+                        }
+            elif venue_year == 2020:
+                record = {"id": review.id, #str
+                          "replyto": review.replyto, # id of submission (str)
+                          "tcdate": review.tcdate,
+                          "tmdate": review.tmdate,
+                        
+                        # ------ content -------
+                        "title": review.content["title"],
+                        "rating": review.content["rating"],
+                        "review": review.content["review"],
+                        "experience_assessment": review.content["experience_assessment"],
+                        "review_assessment:_thoroughness_in_paper_reading": review.content["review_assessment:_thoroughness_in_paper_reading"],
+                        "review_assessment:_checking_correctness_of_experiments": review.content["review_assessment:_checking_correctness_of_experiments"],
+                        "review_assessment:_checking_correctness_of_derivations_and_theory": review.content["review_assessment:_checking_correctness_of_derivations_and_theory"],
+                        }
+            elif venue_year == 2022:
+                record = {"id": review.id, #str
+                          "replyto": review.replyto, # id of submission (str)
+                          "tcdate": review.tcdate,
+                          "tmdate": review.tmdate,
+                        
+                        # ------ content -------
+                        "summary_of_the_paper": review.content["summary_of_the_paper"],
+                        "main_review": review.content["main_review"],
+                        "summary_of_the_review": review.content["summary_of_the_review"],
+                        "correctness": review.content["correctness"],
+                        "technical_novelty_and_significance": review.content["technical_novelty_and_significance"],
+                        "empirical_novelty_and_significance": review.content["empirical_novelty_and_significance"],
+                        "flag_for_ethics_review": review.content["flag_for_ethics_review"],
+                        "recommendation": review.content["recommendation"],
+                        "confidence": review.content["confidence"],
+                        }
+            elif venue_year == 2023:
+                record = {"id": review.id, #str
+                          "replyto": review.replyto, # id of submission (str)
+                          "tcdate": review.tcdate,
+                          "tmdate": review.tmdate,
+                        
+                        # ------ content -------
+                        "confidence": review.content["confidence"],
+                        "summary_of_the_paper": review.content["summary_of_the_paper"],
+                        "strength_and_weaknesses": review.content["strength_and_weaknesses"],
+                        "clarity,_quality,_novelty_and_reproducibility": review.content["clarity,_quality,_novelty_and_reproducibility"],
+                        "summary_of_the_review": review.content["summary_of_the_review"],
+                        "correctness": review.content["correctness"],
+                        "technical_novelty_and_significance": review.content["technical_novelty_and_significance"],
+                        "empirical_novelty_and_significance": review.content["empirical_novelty_and_significance"],
+                        "flag_for_ethics_review": review.content["flag_for_ethics_review"],
+                        "recommendation": review.content["recommendation"],
+                        }
             review_records.append(record)
 
     print(f"found {len(review_records)} records")
     df = pd.DataFrame.from_records(review_records)
     save_path = os.path.join(str(venue_year), "official_reviews.csv")
-    df.to_csv(save_path, index=False)
+    try:
+        df.to_csv(save_path, index=False)
+    except Exception:
+        df.to_csv(save_path, escapechar="\\", index=False)
 
 
 if __name__ == "__main__":
