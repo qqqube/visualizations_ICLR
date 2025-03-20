@@ -32,6 +32,11 @@ DESK_REJECTED_SUBMISSION = {2017: "ICLR.cc/2017/Conference/-/Desk_Rejected_Submi
                             2022: "ICLR.cc/2022/Conference/-/Desk_Rejected_Submission",
                             2023: "ICLR.cc/2023/Conference/-/Desk_Rejected_Submission"}
 
+OFFICIAL_REVIEWS = {2017: "ICLR.cc/2017/conference/-/paper%s/official/review", 
+                    2018: "ICLR.cc/2018/Conference/-/Paper.*/Official_Review", 
+                    2019: "ICLR.cc/2019/Conference/-/Paper.*/Official_Review", 
+                    2020: "ICLR.cc/2020/Conference/Paper.*/-/Official_Review"}
+
 ACCEPTED = "Accepted"
 REJECTED = "Rejected"
 
@@ -173,6 +178,40 @@ def _make_submissions(client, venue_year, save_path):
         df.to_csv(save_path, escapechar="\\", index=False)
 
 
+def _make_discussions(client, venue_year):
+    """ Create official_comments.csv and official_reviews.csv """
+
+    print(f"creating {venue_year}/official_reviews.csv")
+    submissions_path = os.path.join(str(venue_year), "submissions.csv")
+    submissions = pd.read_csv(submissions_path)
+
+    review_records = []
+    for _, submission in tqdm(submissions.iterrows()):
+        invitation = OFFICIAL_REVIEWS[venue_year] % submission["number"]
+        reviews = openreview.tools.iterget_notes(client,
+                                                 invitation=invitation)
+        for review in reviews:
+            #print(f"review.id = {review.id}")
+            #print(f"review.replyto = {review.replyto}")
+            record = {"id": review.id, #str
+                      "replyto": review.replyto, # id of submission (str)
+                      "tcdate": review.tcdate,
+                      "tmdate": review.tmdate,
+                      
+                      # ------ content -------
+                      "title": review.content["title"],
+                      "rating": review.content["rating"],
+                      "review": review.content["review"],
+                      "confidence": review.content["confidence"] if "confidence" in review.content.keys() else "",
+                      }
+            review_records.append(record)
+
+    print(f"found {len(review_records)} records")
+    df = pd.DataFrame.from_records(review_records)
+    save_path = os.path.join(str(venue_year), "official_reviews.csv")
+    df.to_csv(save_path, index=False)
+
+
 if __name__ == "__main__":
 
     # load arguments
@@ -185,7 +224,7 @@ if __name__ == "__main__":
     client = init_api_v1(USERNAME, PASSWORD)
 
     # ------ create submissions.csv -------
-    _make_submissions(client, args.venue_year, os.path.join(str(args.venue_year), "submissions.csv"))
+    #_make_submissions(client, args.venue_year, os.path.join(str(args.venue_year), "submissions.csv"))
 
     # ------ create official_reviews.csv and official_comments.csv ------
-    #_make_discussions(client, args.venue_id, ???)
+    _make_discussions(client, args.venue_year)
