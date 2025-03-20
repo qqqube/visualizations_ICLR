@@ -166,7 +166,7 @@ def _make_submissions(client, venue_year, save_path):
         records.append(record)
 
     print(f"found {len(records)} records")
-    df = pd.DataFrame.from_records(records)
+    df = pd.DataFrame.from_records(records).drop_duplicates()
     try:
         df.to_csv(save_path, index=False)
     except Exception:
