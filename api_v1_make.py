@@ -40,6 +40,15 @@ OFFICIAL_REVIEWS = {2017: "ICLR.cc/2017/conference/-/paper%s/official/review",
                     2022: "ICLR.cc/2022/Conference/Paper%s/-/Official_Review",
                     2023: "ICLR.cc/2023/Conference/Paper%s/-/Official_Review"}
 
+OFFICIAL_COMMENTS = {2017: "ICLR.cc/2017/conference/-/paper%s/public/comment",
+                     2018: "ICLR.cc/2018/Conference/-/Paper%s/Official_Comment",
+                     2019: "ICLR.cc/2019/Conference/-/Paper%s/Official_Comment",
+                     2020: "ICLR.cc/2020/Conference/Paper%s/-/Official_Comment",
+                     2021: "ICLR.cc/2021/Conference/Paper%s/-/Official_Comment",
+                     2022: "ICLR.cc/2022/Conference/Paper%s/-/Official_Comment",
+                     2023: "ICLR.cc/2023/Conference/Paper%s/-/Official_Comment"}
+
+
 ACCEPTED = "Accepted"
 REJECTED = "Rejected"
 
@@ -181,8 +190,8 @@ def _make_submissions(client, venue_year, save_path):
         df.to_csv(save_path, escapechar="\\", index=False)
 
 
-def _make_discussions(client, venue_year):
-    """ Create official_comments.csv and official_reviews.csv """
+def _make_reviews(client, venue_year):
+    """ Create official_reviews.csv """
 
     print(f"creating {venue_year}/official_reviews.csv")
     submissions_path = os.path.join(str(venue_year), "submissions.csv")
@@ -266,6 +275,59 @@ def _make_discussions(client, venue_year):
     except Exception:
         df.to_csv(save_path, escapechar="\\", index=False)
 
+def _make_comments(client, venue_year):
+    """Create official_comments.csv"""
+    
+    comment_records = []
+    submissions = pd.read_csv(os.path.join(str(venue_year), "submissions.csv"))
+    for _, submission in tqdm(submissions.iterrows()):
+        invitation = OFFICIAL_COMMENTS[venue_year] % submission.number
+        official_comments = openreview.tools.iterget_notes(client,
+                                                           invitation=invitation)
+        for official_comment in official_comments:
+
+            if venue_year == 2017:
+                if "comment" not in official_comment.content.keys():
+                    continue
+                by_reviewer = any("Reviewer" in item for item in official_comment.writers)
+                record = {"id": official_comment.id,
+                        "replyto": official_comment.replyto,
+                        "tcdate": official_comment.tcdate, # unix timestamp in milliseconds for true creation date
+                        "tmdate": official_comment.tmdate, # unix timestamp in milliseconds for true modification date
+                        "writer": "Reviewer" if by_reviewer else "Author",
+
+                        # ------ content ---------
+                        "title": official_comment.content["title"] if "title" in official_comment.content.keys() else "", # str
+                        "comment": official_comment.content["comment"], # str
+                        }
+            elif venue_year in [2018, 2019, 2020, 2021, 2022, 2023]:
+                if "comment" not in official_comment.content.keys():
+                    print("SPENCER 1")
+                    continue
+                by_author = any("Authors" in item for item in official_comment.writers)
+                by_reviewer = any("Reviewer" in item for item in official_comment.writers)
+                if not any([by_author, by_reviewer]):
+                    print("SPENCER 2")
+                    continue
+                record = {"id": official_comment.id,
+                        "replyto": official_comment.replyto,
+                        "tcdate": official_comment.tcdate, # unix timestamp in milliseconds for true creation date
+                        "tmdate": official_comment.tmdate, # unix timestamp in milliseconds for true modification date
+                        "writer": "Reviewer" if by_reviewer else "Author",
+
+                        # ------ content ---------
+                        "title": official_comment.content["title"] if "title" in official_comment.content.keys() else "", # str
+                        "comment": official_comment.content["comment"], # str
+                        }
+            comment_records.append(record)
+    print(f"found {len(comment_records)} records")
+    df = pd.DataFrame.from_records(comment_records)
+    save_path = os.path.join(str(venue_year), "official_comments.csv")
+    try:
+        df.to_csv(save_path, index=False)
+    except Exception:
+        df.to_csv(save_path, escapechar="\\", index=False)
+
 
 if __name__ == "__main__":
 
@@ -282,4 +344,5 @@ if __name__ == "__main__":
     #_make_submissions(client, args.venue_year, os.path.join(str(args.venue_year), "submissions.csv"))
 
     # ------ create official_reviews.csv and official_comments.csv ------
-    _make_discussions(client, args.venue_year)
+    #_make_reviews(client, arge.venue_year)
+    _make_comments(client, args.venue_year)
