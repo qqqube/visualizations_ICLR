@@ -33,6 +33,7 @@ def GetPrimaryArea(client, openai_model_name, abstract, year):
                                               messages=[{"role": "user",
                                                          "content": prompt}])
     output = response.choices[0].message.content
+    print(output)
     return output
 
 
