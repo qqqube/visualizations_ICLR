@@ -1,0 +1,31 @@
+Here is the abstract of a paper that was published at ICLR {{year}}:
+
+
+{{abstract}}
+
+
+Select the category that this paper belongs to. Choose a category from the following list with 21 categories:
+
+1. alignment, fairness, safety, privacy, and societal considerations
+2. applications to computer vision, audio, language, and other modalities
+3. applications to neuroscience & cognitive science
+4. applications to physical sciences (physics, chemistry, biology, etc.)
+5. applications to robotics, autonomy, planning
+6. causal reasoning
+7. datasets and benchmarks
+8. foundation or frontier models, including LLMs
+9. generative models
+10. infrastructure, software libraries, hardware, systems, etc.
+11. interpretability and explainable AI
+12. learning on graphs and other geometries & topologies
+13. learning on time series and dynamical systems
+14. learning theory
+15. neurosymbolic & hybrid AI systems (physics-informed, logic & formal reasoning, etc.)
+16. optimization
+17. unsupervised, self-supervised, semi-supervised, and supervised representation learning
+18. probabilistic methods (Bayesian methods, variational inference, sampling, UQ, etc.)
+19. reinforcement learning
+20. transfer learning, meta learning, and lifelong learning
+21. other topics in machine learning (i.e., none of the above)
+
+Just output the category from the list and nothing else. Don't include the number from the list in your answer.
